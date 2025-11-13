@@ -4,7 +4,6 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 import datetime
 
 # --- InfluxDB 2.0 Configuration ---
-# Make sure you have created this bucket and organization in InfluxDB
 INFLUX_URL = "http://localhost:8086"
 INFLUX_TOKEN = "YOUR_INFLUX_TOKEN"  # Your InfluxDB token
 INFLUX_ORG = "YOUR_ORG"              # Your InfluxDB organization
@@ -16,7 +15,6 @@ MQTT_PORT = 1883
 MQTT_TOPIC = "geodata/+/status"  # Subscribes to all nodes (e.g., geodata/node1/status)
 
 # --- Setup InfluxDB Client ---
-# This is the "pen" you will use to write to the database
 try:
     influx_client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = influx_client.write_api(write_options=SYNCHRONOUS)
@@ -49,7 +47,6 @@ def on_message(client, userdata, msg):
     
     try:
         # Example topic: "geodata/node1/status"
-        # We split by '/' to get the node_id
         node_id = topic.split('/')[1]
     except Exception as e:
         node_id = "unknown"
@@ -66,19 +63,17 @@ def on_message(client, userdata, msg):
         risk_level = int(payload)
         
         # Create a "Point" for InfluxDB
-        # This is the data structure InfluxDB understands
         point = Point("eruption_risk") \
             .tag("node_id", node_id) \
             .field("risk_level", risk_level) \
             .time(datetime.datetime.utcnow(), WritePrecision.NS)
 
-        # Write the point to the database
         write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)
         print(f"-> Logged to InfluxDB: Node {node_id}, Risk {risk_level}")
 
     except Exception as e:
         print(f"Error logging to InfluxDB: {e}")
-        return # Don't proceed if logging failed
+        return 
 
     # --- JOB 2: Active Alerter ---
     if risk_level == 1:
@@ -116,7 +111,6 @@ def main():
         exit(1)
     
     # Start the network loop. This runs forever, listening for messages.
-    # loop_forever() is a blocking call, so it will keep the script alive.
     print("Starting Hub Controller. Listening for messages...")
     mqtt_client.loop_forever()
 
