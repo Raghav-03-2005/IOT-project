@@ -24,7 +24,7 @@ Content: Contains historical or synthetic geothermal sensor data (Water Temperat
 
 2. ESP32 Firmware (The Edge Node)
 
-esp32.c (or .ino):
+esp32.c:
 
 Purpose: The main firmware for the ESP32 microcontroller.
 
